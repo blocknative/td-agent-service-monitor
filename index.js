@@ -9,25 +9,28 @@ const defaultConfig = {
 
 let interval = null
 
+function check(url, config) {
+  axios.get(url)
+    .then((res) => {
+      config.callback({
+        alive: true,
+        plugins: res.data.plugins,
+      })
+    })
+    .catch(() => {
+      config.callback({
+        alive: false,
+        plugins: [],
+      })
+    })
+}
+
 function start(userConfig) {
   const config = { ...defaultConfig, ...userConfig }
   const url = `http://${config.host}:${config.port}/api/plugins.json`
 
-  interval = setInterval(async () => {
-    axios.get(url)
-      .then((res) => {
-        config.callback({
-          alive: true,
-          plugins: res.data.plugins,
-        })
-      })
-      .catch(() => {
-        config.callback({
-          alive: false,
-          plugins: [],
-        })
-      })
-  }, config.checkInterval)
+  check(url, config)
+  interval = setInterval(() => check(url, config), config.checkInterval)
 }
 
 function stop() {
